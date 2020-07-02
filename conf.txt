@@ -1,0 +1,6 @@
+[EMT]
+@EMT_OutputAnalog	100	sharmemory_emtdts_analog_out	127.0.0.1	32000	100	0
+[List]
+@KKS
+EMT	DTS
+kksN1	kksK1
