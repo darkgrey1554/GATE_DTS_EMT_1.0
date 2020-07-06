@@ -294,18 +294,29 @@ int TCPServer::thread_tcp_server()
     int result = 0;
     std::string ipclientstr;
     unsigned long ipclinet=0;
+    
     int count_recv = 0;
     int res_recv = 0;
+    char num_recv = 1;
+
+    int count_send = 0;
+    int res_send = 0;
+    char num_send = 0;
+
 
     char* buf_recv = new char[1];
     char* buf_send = new char[set.size_data*k_data+5];
     for (int i = 0; i < set.size_data * k_data + 5; i++) buf_send[i] = 0;
-    char num_recv = 1;
+    
     int command = 0;
     char* ibuf;
     char* jbuf;
-    int res_send = 0;
+
     float f;
+    aiocb aiobufsend;
+    aiocb aiobufrecv;
+    sigevent sigrecv;
+    sigevent sigsend;
 
     listensocket = socket(AF_INET, SOCK_STREAM, 0);
     if (listensocket == -1)
@@ -348,6 +359,7 @@ int TCPServer::thread_tcp_server()
         {
             std::cout << "SERVER ID: " << set.id_unit << "\tERROR CONNECTION CLIENT CODE ERROR: "<< errno << std::endl;
             close(client);
+            sleep(2);
             continue;
         }
         
@@ -364,38 +376,102 @@ int TCPServer::thread_tcp_server()
             << ipclientstr.c_str()
             << "\tPORT: " << addr_client.sin_port << std::endl;
 
+        sigrecv.sigev_notify=SIGEV_NONE;
+        aiobufrecv.aio_fildes = client;
+        aiobufrecv.aio_offset = 0;
+        aiobufrecv.aio_buf = buf_recv;
+        aiobufrecv.aio_nbytes = set.size_data * k_data + 5;
+        aiobufrecv.aio_reqprio = 0;
+        aiobufrecv.aio_sigevent = sigrecv;
+        aiobufrecv.aio_lio_opcode = LIO_READ;
+
+        sigsend.sigev_notify = SIGEV_NONE;
+        aiobufsend.aio_fildes = client;
+        aiobufsend.aio_offset = 0;
+        aiobufsend.aio_buf = buf_send;
+        aiobufsend.aio_nbytes = set.size_data * k_data + 5;
+        aiobufsend.aio_reqprio = 0;
+        aiobufsend.aio_sigevent = sigsend;
+        aiobufsend.aio_lio_opcode = LIO_READ;
+
+
         for (;;)
         {
             count_recv = 0;
             res_recv = 0;
+            aiobufrecv.aio_offset = 0;
+            aiobufrecv.aio_buf = buf_recv;
+
             for (;;)
             {
-                res_recv= recv(client, buf_recv + count_recv, num_recv- count_recv, NULL);
-                if (res_recv == 0) break;
-                count_recv+=res_recv;
-                if (count_recv == num_recv) break;
+                aiobufrecv.aio_offset = 0;
+                aiobufrecv.aio_buf = buf_recv + count_recv;
+                aio_read(&aiobufrecv);
+
+                for (;;)
+                {
+                    result = aio_error(&aiobufrecv);
+                    if (result != 0)
+                    {
+                        if (result == EINPROGRESS)
+                        {
+                            usleep(100);
+                            continue;
+                        }
+                        else break;
+                    }
+                    else break;
+                }
+
+                if (result != 0) break;
+
+                res_recv = aio_return(&aiobufrecv);
+                count_recv += res_recv;
+                if (res_recv <= 0 || count_recv>num_recv)
+                {
+                    result = -10;
+                    break;
+                }
+
+                
+                if (count_recv < num_recv) continue;
+
+                break;
             }
-            if (res_recv == 0)
+
+            if (result != 0)
             {
-                std::cout << "SERVER ID: " << set.id_unit << "\tERROR RECV CODE ERROR: " << errno << std::endl;
+                if (result == -1)
+                {
+                    std::cout << "SERVER ID: " << set.id_unit << "\tERROR ASYNC_READ CODE ERROR: " << errno << std::endl;
+                }
+                else if (result == -10)
+                {
+                    std::cout << "SERVER ID: " << set.id_unit << "\tERROR ASYNC_READ: " << "messeng size  is zero or too large" << std::endl;
+                }
+                else
+                {
+                    std::cout << "SERVER ID: " << set.id_unit << "\tERROR ASYNC_READ CODE ERROR: " << result << std::endl;  /// так тут норм описать ошибку надо
+                }
+
                 close(client);
+                sleep(2);
                 break;
             }
             
             command = *buf_recv;
             if (command != 3) continue;
-           
+
             ibuf = buf;
             jbuf = buf_send;
             *jbuf = 3;
             jbuf++;
             for (int i = 0; i < 4; i++)
             {
-                
+
                 *jbuf = *(((char*)&set.size_data) + i);
                 jbuf++;
             }
-
 
             if (pthread_mutex_lock(&mutex) == 0)
             {
@@ -407,11 +483,73 @@ int TCPServer::thread_tcp_server()
                         jbuf++;
                         ibuf++;
                     }
-                } 
+                }
                 pthread_mutex_unlock(&mutex);
             }
 
-            res_send = send(client, buf_send, set.size_data * k_data + 5, NULL);
+            count_send = 0;
+
+            for (;;)
+            {
+                
+                aiobufsend.aio_offset = 0;
+                aiobufsend.aio_buf = buf_send+count_send;
+                aiobufsend.aio_nbytes = set.size_data * k_data + 5-count_send;
+
+                aio_write(&aiobufsend);
+
+                for (;;)
+                {
+                    result = aio_error(&aiobufrecv);
+                    if (result != 0)
+                    {
+                        if (result == EINPROGRESS)
+                        {
+                            usleep(100);
+                            continue;
+                        }
+                        else break;
+                    }
+                    else break;
+                }
+
+                if (result != 0) break;
+
+                res_recv = aio_return(&aiobufrecv);
+                count_recv += res_recv;
+                if (res_recv <= 0 )
+                {
+                    result = -10;
+                    break;
+                }
+
+
+                if (count_recv < num_recv) continue;
+
+                break;
+
+            }
+
+            if (result != 0)
+            {
+                if (result == -1)
+                {
+                    std::cout << "SERVER ID: " << set.id_unit << "\tERROR ASYNC_SEND CODE ERROR: " << errno << std::endl;
+                }
+                else if (result == -10)
+                {
+                    std::cout << "SERVER ID: " << set.id_unit << "\tERROR ASYNC_READ: " << "transfer messeng is zero" << std::endl;
+                }
+                else
+                {
+                    std::cout << "SERVER ID: " << set.id_unit << "\tERROR ASYNC_READ CODE ERROR: " << result << std::endl;  /// так тут норм описать ошибку надо
+                }
+
+                close(client);
+                sleep(2);
+                break;
+            }
+
         }
     }
     return 0;
@@ -448,7 +586,7 @@ int TCPClient::thread_tcp_client()
 {
     std::cout << "START CLIENT ID:" << set.id_unit << "\tPORT:" << set.port << "\tIP_ADDRESS: " << set.ip_address
         << "\tTYPEDATA:" << set.type_data << std::endl;
-
+  
     int k_data = 0;
     if (set.type_data == TypeData::ANALOG || set.type_data == TypeData::DISCRETE) k_data = 4;
     if (set.type_data == TypeData::GROUP || set.type_data == TypeData::BINAR)     k_data = 1;
@@ -501,7 +639,7 @@ int TCPClient::thread_tcp_client()
             std::cout << "CLIENT ID: " << set.id_unit << " CONNECTED WITH SERVER DONE " << std::endl;
         }
 
-        sig.sigev_notify; SIGEV_NONE;
+        sig.sigev_notify=SIGEV_NONE;
 
         aiobuf.aio_fildes = connect_socket;
         aiobuf.aio_offset = 0;
@@ -511,7 +649,7 @@ int TCPClient::thread_tcp_client()
         aiobuf.aio_sigevent = sig;
         aiobuf.aio_lio_opcode = LIO_READ;
 
-
+        
         for (;;)
         {
 
@@ -519,11 +657,11 @@ int TCPClient::thread_tcp_client()
             res_recv = 0;
             aiobuf.aio_offset = 0;
             aiobuf.aio_buf = buf_recv;
-
+           
             for (;;)
             {
-                aiobuf.aio_offset = count_recv;
-                aiobuf.aio_buf = buf_recv;
+                aiobuf.aio_offset = 0;
+                aiobuf.aio_buf = buf_recv + count_recv;
                 aio_read(&aiobuf);
                 
                 for (;;)
@@ -540,7 +678,7 @@ int TCPClient::thread_tcp_client()
                     }
                     else break;
                 }
-                
+               
                 if (result != 0) break;
                 
                 res_recv = aio_return(&aiobuf);
@@ -549,9 +687,12 @@ int TCPClient::thread_tcp_client()
                     result = -1;
                     break;
                 }
+
                 count_recv += res_recv;
                 if (count_recv < 4) continue;
+
                 num_recv = *((int*)buf_recv);
+
 
                 if (num_recv != set.size_data) 
                 {
@@ -581,63 +722,6 @@ int TCPClient::thread_tcp_client()
                 break;
             }
 
-
-            /*aio_read(&aiobuf);
-
-            for (;;)
-            {
-                result = aio_error(&aiobuf);
-                if (result != 0)
-                {
-                    if (result == -1)
-                    {
-                        std::cout << "CLIENT ID: " << set.id_unit << " ERROR errno CODE ERROR: " << errno << std::endl;
-                        close(connect_socket);
-                        sleep(2);
-                        break;
-                    }
-                    if (result == EINPROGRESS)
-                    {
-                        usleep(100);
-                        continue;
-                    }
-                    break;
-                }
-                else break;
-            }
-            if (result == -1) break;
-            if (result != 0)
-            {
-                std::cout << "CLIENT ID: " << set.id_unit << " ERROR ASYNC_READ CODE ERROR: " << result << std::endl;
-                close(connect_socket);
-                sleep(2);
-                break;
-            }
-
-            res_recv = aio_return(&aiobuf);
-            //std::cout << res_recv << std::endl;
-            num_recv = *((int*)buf_recv);
-            std::cout << num_recv << std::endl;
-            /*count_recv = 0;
-            res_recv = 0;
-            for (;;)
-            {
-                res_recv = recv(connect_socket, buf_recv + count_recv, set.size_data * k_data + 4 - count_recv, NULL);
-                if (res_recv == 0) break;
-                count_recv += res_recv;
-                if (count_recv < 4) continue;
-                num_recv = *((int*)buf_recv);
-                if (count_recv < num_recv * k_data + 4) { continue; }
-                else break;
-            }*/
-           
-            /*if (res_recv == 0)
-            {
-                std::cout << "CLIENT ID: " << set.id_unit << " CONNECTED WITH SERVER TORN CODE ERROR:" << errno << std::endl;
-                close(connect_socket);
-                sleep(2);
-                break;
-            }*/
 
             ibuf = buf_recv + 4;
             jbuf = buf;

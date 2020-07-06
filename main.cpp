@@ -1,13 +1,13 @@
 #include <cstdio>
 #include "tcpgateL.h"
 
-
+#define SIZEMASS 100000
 int main()
 {
     printf("hello from GATE_DTS_EMT_1_0!\n");
 
     pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
-    char* buf = new char[1000];
+    char* buf = new char[SIZEMASS*4];
     float f;
 
     ConfigReader* config = new ConfigReader();
@@ -27,10 +27,10 @@ int main()
 
     next:
 
-    /*pthread_mutex_lock(&mut);
-    f = *(float*)buf;
-    std::cout << f << std::endl;
-    pthread_mutex_unlock(&mut);*/
+    pthread_mutex_lock(&mut);
+    //f = *(float*)buf;
+    //std::cout << f << "  " << *(float*)(buf+SIZEMASS*4-4) <<std::endl;
+    pthread_mutex_unlock(&mut);
     usleep(100000);
 
     goto next;
