@@ -28,7 +28,7 @@ int main()
     next:
 
     pthread_mutex_lock(&mut);
-    //f = *(float*)buf;
+    f = *(float*)buf;
     //std::cout << f << "  " << *(float*)(buf+SIZEMASS*4-4) <<std::endl;
     pthread_mutex_unlock(&mut);
     usleep(100000);

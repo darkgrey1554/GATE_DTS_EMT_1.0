@@ -30,6 +30,7 @@ struct FrequencySndData
 	int offset;
 	int size;
 	timeval TimeLastSnd;
+	int channel;
 
 	void clear()
 	{
@@ -38,6 +39,7 @@ struct FrequencySndData
 		size=0;
 		TimeLastSnd.tv_sec=0;
 		TimeLastSnd.tv_usec = 0;
+		int channel=0;
 	}
 };
 
@@ -78,9 +80,9 @@ class GatePPDClient
 
 	int channel = 0;
 
-	//std::vector<FrequencySndData> SndAnalogData;
-	//std::vector<FrequencySndData> SndDiscreteData;
-	//std::vector<FrequencySndData> SndGrpData;
+	std::vector<FrequencySndData> SndAnalogData;
+	std::vector<FrequencySndData> SndDiscreteData;
+	std::vector<FrequencySndData> SndGrpData;
 	int FrequencySndAnalogData = 0;
 	int FrequencySndDiscreteData = 0;
 	int FrequencySndBinarData = 0;

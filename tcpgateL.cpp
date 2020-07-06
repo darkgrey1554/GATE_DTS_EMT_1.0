@@ -228,9 +228,7 @@ int ConfigReader::ReadConfigFile(const char* filename)
 
 
 ConfigReader::ConfigReader()
-{
-
-}
+{}
 
 ConfigReader::~ConfigReader()
 {}
@@ -312,16 +310,17 @@ int TCPServer::thread_tcp_server()
     char* ibuf;
     char* jbuf;
 
-    float f;
     aiocb aiobufsend;
     aiocb aiobufrecv;
     sigevent sigrecv;
     sigevent sigsend;
+    aiocb* aio_point;
 
     listensocket = socket(AF_INET, SOCK_STREAM, 0);
     if (listensocket == -1)
     {
         std::cout << "SERVER ID: " << set.id_unit << "/tERROR INITIALIZATION CODE ERROR: "<< errno << std::endl;
+        sleep(2);
         return -1;
     }
 
@@ -329,17 +328,19 @@ int TCPServer::thread_tcp_server()
     if (ip == -1)
     {
         std::cout << "SERVER ID: " << set.id_unit << "/tERROR INITIALIZATION ERROR: BAD IP" << std::endl;
+        sleep(2);
         return -1;
     }
 
     addr_server.sin_family = AF_INET;
-    addr_server.sin_addr.s_addr = htonl(ip); //inet_addr(IP_Server.c_str());
+    addr_server.sin_addr.s_addr = htonl(ip);
     addr_server.sin_port = htons(set.port);
 
     result = bind(listensocket, (sockaddr*)&addr_server, sizeof(addr_server));
     if (result == -1)
     {
         std::cout << "SERVER ID: " << set.id_unit << "\tERROR INITIALIZATION CODE ERROR: " << errno << std::endl;
+        sleep(2);
         return -1;
 
     }
@@ -348,13 +349,13 @@ int TCPServer::thread_tcp_server()
     {
         std::cout << "SERVER ID: " << set.id_unit << "\tERROR INITIALIZATION CODE ERROR: " << errno << std::endl;
         close(listensocket);
-        //closesocket(listensocket);
+        sleep(2);
         return -1;
     }
 
     for (;;)
     {
-        client = accept(listensocket, (sockaddr*)&addr_client, &lenght_addr_client); //client = accept(listensocket, NULL, NULL);
+        client = accept(listensocket, (sockaddr*)&addr_client, &lenght_addr_client);
         if (client == -1)
         {
             std::cout << "SERVER ID: " << set.id_unit << "\tERROR CONNECTION CLIENT CODE ERROR: "<< errno << std::endl;
@@ -406,9 +407,34 @@ int TCPServer::thread_tcp_server()
             {
                 aiobufrecv.aio_offset = 0;
                 aiobufrecv.aio_buf = buf_recv + count_recv;
-                aio_read(&aiobufrecv);
+                result=aio_read(&aiobufrecv);
 
-                for (;;)
+                if (result == -1)
+                {
+                    break;
+                }
+
+                aio_point = &aiobufrecv;
+                result = aio_suspend(&aio_point, 1, NULL);
+
+                if (result == -1)
+                {
+                    break;
+                }
+
+                res_recv = aio_return(&aiobufrecv);
+                count_recv += res_recv;
+                if (res_recv <= 0 || count_recv > num_recv)
+                {
+                    result = -10;
+                    break;
+                }
+
+                if (count_recv < num_recv) continue;
+
+                break;
+
+                /*for (;;)
                 {
                     result = aio_error(&aiobufrecv);
                     if (result != 0)
@@ -436,7 +462,7 @@ int TCPServer::thread_tcp_server()
                 
                 if (count_recv < num_recv) continue;
 
-                break;
+                break;*/
             }
 
             if (result != 0)
@@ -458,7 +484,7 @@ int TCPServer::thread_tcp_server()
                 sleep(2);
                 break;
             }
-            
+
             command = *buf_recv;
             if (command != 3) continue;
 
@@ -500,7 +526,7 @@ int TCPServer::thread_tcp_server()
 
                 for (;;)
                 {
-                    result = aio_error(&aiobufrecv);
+                    result = aio_error(&aiobufsend);
                     if (result != 0)
                     {
                         if (result == EINPROGRESS)
@@ -515,16 +541,16 @@ int TCPServer::thread_tcp_server()
 
                 if (result != 0) break;
 
-                res_recv = aio_return(&aiobufrecv);
-                count_recv += res_recv;
-                if (res_recv <= 0 )
+                res_send = aio_return(&aiobufsend);
+                count_send += res_send;
+                if (res_send <= 0 )
                 {
                     result = -10;
                     break;
                 }
 
 
-                if (count_recv < num_recv) continue;
+                if (count_send < set.size_data * k_data + 5) continue;
 
                 break;
 
@@ -613,7 +639,7 @@ int TCPClient::thread_tcp_client()
     }
 
     addr_server.sin_family = AF_INET;
-    addr_server.sin_addr.s_addr = htonl(ip);//inet_addr(IP_Server.c_str());
+    addr_server.sin_addr.s_addr = htonl(ip);
     addr_server.sin_port = htons(set.port);
 
     for (;;)

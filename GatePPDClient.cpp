@@ -41,7 +41,7 @@ int GatePPDClient::read_config_file(const char* Namefile)
             break;
         }
 
-        if (str_info.substr(0, 5) == "@GATE")
+        if (str_info.substr(0, 4) == "@EMT")
         {
             pos[0] = 0;
             pos[1] = 0;
@@ -63,7 +63,7 @@ int GatePPDClient::read_config_file(const char* Namefile)
                 return -1;
             }
 
-            helpstr.clear();
+            /*helpstr.clear();
             helpstr = str_info.substr((size_t)pos[0] + 1, (size_t)pos[1] - pos[0] - 1);
             infoSndData.offset = atoi(helpstr.c_str());
 
@@ -74,7 +74,7 @@ int GatePPDClient::read_config_file(const char* Namefile)
                 std::cout << "MAINT\tERROR_FORMATION_OF_CONFIG_FILE" << std::endl;
                 fclose(config_file);
                 return -1;
-            }
+            }*/
             helpstr.clear();
             helpstr = str_info.substr((size_t)pos[0] + 1, (size_t)pos[1] - pos[0] - 1);
             infoSndData.size = atoi(helpstr.c_str());
@@ -98,8 +98,38 @@ int GatePPDClient::read_config_file(const char* Namefile)
             }
 
             pos[0] = pos[1];
+            pos[1] = str_info.find('\t', (size_t)pos[0] + 1);
+            if (pos[1] == -1)
+            {
+                std::cout << "MAINT\tERROR_FORMATION_OF_CONFIG_FILE" << std::endl;
+                fclose(config_file);
+                return -1;
+            }
+
+            pos[0] = pos[1];
+            pos[1] = str_info.find('\t', (size_t)pos[0] + 1);
+            if (pos[1] == -1)
+            {
+                std::cout << "MAINT\tERROR_FORMATION_OF_CONFIG_FILE" << std::endl;
+                fclose(config_file);
+                return -1;
+            }
+
             helpstr.clear();
-            helpstr = str_info.substr((size_t)pos[0] + 1);
+            helpstr = str_info.substr((size_t)pos[0] + 1, (size_t)pos[1] - pos[0] - 1);
+            infoSndData.frequency = atoi(helpstr.c_str());
+
+            pos[0] = pos[1];
+            pos[1] = str_info.find('\t', (size_t)pos[0] + 1);
+            if (pos[1] == -1)
+            {
+                std::cout << "MAINT\tERROR_FORMATION_OF_CONFIG_FILE" << std::endl;
+                fclose(config_file);
+                return -1;
+            }
+
+            helpstr.clear();
+            helpstr = str_info.substr((size_t)pos[0] + 1, (size_t)pos[1] - pos[0] - 1);
             infoSndData.frequency = atoi(helpstr.c_str());
 
             if (str_info.find("Analog") != -1)
@@ -357,14 +387,14 @@ int GatePPDClient::ReadDataFromPPD(TypeSignalPPD type_signal, void* buf, int off
         float* ibuf=(float*)buf;
         float* jbuf = bufAnalogOut;
         jbuf += offset;
-        //pthread_mutex_lock(&mutex_analog_out);
+        pthread_mutex_lock(&mutex_analog_out);
         for (int i = 0; i < size; i++)
         {
             *ibuf = *jbuf;
             ibuf++;
             jbuf++;
         }
-        //pthread_mutex_unlock(&mutex_analog_out);
+        pthread_mutex_unlock(&mutex_analog_out);
 
     }
     else if (type_signal == TypeSignalPPD::Discrete)
