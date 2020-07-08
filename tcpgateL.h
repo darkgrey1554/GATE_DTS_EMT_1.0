@@ -75,6 +75,8 @@ public:
 	void virtual close_tcp_unit() {}
 	void virtual initpointbuffer(char* inbuf) {};
 	void virtual initmutexbuffer(pthread_mutex_t inmutex) {};
+	TypeData virtual infotypedata() {};
+	TypeSignal virtual infotypesignal() {};
 
 	static TCPUnit* create_tcp_unit(ConfigInfoTCPUnit unit);
 };
@@ -93,7 +95,8 @@ public:
 	void close_tcp_unit() override;
 	void initpointbuffer(char* buf) override;
 	void initmutexbuffer(pthread_mutex_t mutex) override;
-
+	TypeData infotypedata() override;
+	TypeSignal infotypesignal() override;
 };
 
 class TCPClient : public TCPUnit
@@ -108,5 +111,7 @@ public:
 	void close_tcp_unit() override;
 	void initpointbuffer(char* buf) override;
 	void initmutexbuffer(pthread_mutex_t mutex) override;
+	TypeData infotypedata() override;
+	TypeSignal infotypesignal() override;
 };
 

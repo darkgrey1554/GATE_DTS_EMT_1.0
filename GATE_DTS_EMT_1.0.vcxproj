@@ -75,15 +75,15 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
-    <ClCompile Include="GatePPDClient.cpp" />
     <ClCompile Include="logger.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="PPDClient.cpp" />
     <ClCompile Include="tcpgateL.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dtsclient.h" />
-    <ClInclude Include="GatePPDClient.h" />
     <ClInclude Include="logger.h" />
+    <ClInclude Include="PPDClient.h" />
     <ClInclude Include="tcpgateL.h" />
   </ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

@@ -303,8 +303,24 @@ int TCPServer::thread_tcp_server()
 
 
     char* buf_recv = new char[1];
-    char* buf_send = new char[set.size_data*k_data+5];
-    for (int i = 0; i < set.size_data * k_data + 5; i++) buf_send[i] = 0;
+    char* buf_send; //= new char[set.size_data*k_data+5];
+    int size_data_byte;
+    int size_data_send;
+    if (set.type_data != TypeData::GROUP)
+    {
+        size_data_byte = set.size_data * k_data;
+        size_data_send = size_data_byte + 5;
+        buf_send = new char[size_data_send];
+    }
+    else
+    {
+        size_data_byte = 4108;
+        size_data_send = 4108;
+        buf_send = new char[4108];
+    }
+
+
+    for (int i = 0; i < size_data_send; i++) buf_send[i] = 0;
     
     int command = 0;
     char* ibuf;
@@ -381,7 +397,7 @@ int TCPServer::thread_tcp_server()
         aiobufrecv.aio_fildes = client;
         aiobufrecv.aio_offset = 0;
         aiobufrecv.aio_buf = buf_recv;
-        aiobufrecv.aio_nbytes = set.size_data * k_data + 5;
+        aiobufrecv.aio_nbytes = 1;
         aiobufrecv.aio_reqprio = 0;
         aiobufrecv.aio_sigevent = sigrecv;
         aiobufrecv.aio_lio_opcode = LIO_READ;
@@ -390,7 +406,7 @@ int TCPServer::thread_tcp_server()
         aiobufsend.aio_fildes = client;
         aiobufsend.aio_offset = 0;
         aiobufsend.aio_buf = buf_send;
-        aiobufsend.aio_nbytes = set.size_data * k_data + 5;
+        aiobufsend.aio_nbytes = size_data_send;
         aiobufsend.aio_reqprio = 0;
         aiobufsend.aio_sigevent = sigsend;
         aiobufsend.aio_lio_opcode = LIO_READ;
@@ -490,26 +506,30 @@ int TCPServer::thread_tcp_server()
 
             ibuf = buf;
             jbuf = buf_send;
-            *jbuf = 3;
-            jbuf++;
-            for (int i = 0; i < 4; i++)
+            if (set.type_data != TypeData::GROUP)
             {
-
-                *jbuf = *(((char*)&set.size_data) + i);
+                *jbuf = 3;
                 jbuf++;
-            }
+                for (int i = 0; i < 4; i++)
+                {
 
+                    *jbuf = *(((char*)&set.size_data) + i);
+                    jbuf++;
+                }
+            }
+            
             if (pthread_mutex_lock(&mutex) == 0)
             {
                 if (ibuf != 0)
                 {
-                    for (int i = 0; i < set.size_data * k_data; i++)
+                    for (int i = 0; i < size_data_byte; i++)
                     {
                         *jbuf = *ibuf;
                         jbuf++;
                         ibuf++;
                     }
                 }
+
                 pthread_mutex_unlock(&mutex);
             }
 
@@ -520,7 +540,7 @@ int TCPServer::thread_tcp_server()
                 
                 aiobufsend.aio_offset = 0;
                 aiobufsend.aio_buf = buf_send+count_send;
-                aiobufsend.aio_nbytes = set.size_data * k_data + 5-count_send;
+                aiobufsend.aio_nbytes =size_data_send-count_send;
 
                 aio_write(&aiobufsend);
 
@@ -550,7 +570,7 @@ int TCPServer::thread_tcp_server()
                 }
 
 
-                if (count_send < set.size_data * k_data + 5) continue;
+                if (count_send < size_data_send) continue;
 
                 break;
 
@@ -564,7 +584,7 @@ int TCPServer::thread_tcp_server()
                 }
                 else if (result == -10)
                 {
-                    std::cout << "SERVER ID: " << set.id_unit << "\tERROR ASYNC_READ: " << "transfer messeng is zero" << std::endl;
+                    std::cout << "SERVER ID: " << set.id_unit << "\tERROR ASYNC_READ: " << "TRANSFER MESSENG IS ZERO" << std::endl;
                 }
                 else
                 {
@@ -624,7 +644,23 @@ int TCPClient::thread_tcp_client()
     size_t count_recv;
     size_t res_recv;
     int num_recv;
-    char* buf_recv = new char[set.size_data * k_data + 4];
+    char* buf_recv;// = new char[set.size_data * k_data + 4];
+    int size_data_recv;
+    int size_data_byte;
+
+    if (set.type_data != TypeData::GROUP)
+    {
+        size_data_byte = set.size_data * k_data;
+        size_data_recv = size_data_byte + 4;
+        buf_recv = new char[size_data_recv];        
+    }
+    else
+    {
+        buf_recv = new char[4108];
+        size_data_recv = 4108;
+        size_data_byte = 4108;
+    }
+
     char* ibuf;
     char* jbuf;
     int result;
@@ -670,7 +706,7 @@ int TCPClient::thread_tcp_client()
         aiobuf.aio_fildes = connect_socket;
         aiobuf.aio_offset = 0;
         aiobuf.aio_buf = buf_recv;
-        aiobuf.aio_nbytes = set.size_data * k_data + 4;
+        aiobuf.aio_nbytes = size_data_recv;
         aiobuf.aio_reqprio = 0;
         aiobuf.aio_sigevent = sig;
         aiobuf.aio_lio_opcode = LIO_READ;
@@ -717,15 +753,17 @@ int TCPClient::thread_tcp_client()
                 count_recv += res_recv;
                 if (count_recv < 4) continue;
 
-                num_recv = *((int*)buf_recv);
-
-
-                if (num_recv != set.size_data) 
+                if (set.type_data != TypeData::GROUP)
                 {
-                    result = -10;
-                    break;
+                    num_recv = *((int*)buf_recv);
+                    if (num_recv != set.size_data)
+                    {
+                        result = -10;
+                        break;
+                    }
                 }
-                if (count_recv >= num_recv * k_data + 4) break;   // согласованность в кол-во данных ? 
+                
+                if (count_recv >= size_data_recv) break;   
             }
 
             if (result != 0)
@@ -749,20 +787,22 @@ int TCPClient::thread_tcp_client()
             }
 
 
-            ibuf = buf_recv + 4;
+            ibuf = buf_recv;
+            if (set.type_data != TypeData::GROUP) ibuf += 4;
             jbuf = buf;
 
             if (pthread_mutex_lock(&mutex) == 0) /// вот тут надо try
             {
                 if (buf != 0)
                 {
-                    for (int i = 0; i < num_recv * k_data; i++)
+                    for (int i = 0; i < size_data_byte; i++)
                     {
                         *jbuf = *ibuf;
                         jbuf++;
                         ibuf++;
                     }
                 }   
+                if (*(buf + 99) == -1) std::cout << "sdfsdf" <<std::endl;
                 pthread_mutex_unlock(&mutex);
             }
             
@@ -788,3 +828,8 @@ void TCPClient::initpointbuffer(char* inbuf)
 {
     buf = inbuf;
 }
+
+TypeData TCPClient::infotypedata() { return set.type_data; }
+TypeSignal TCPClient::infotypesignal() { return set.type_signal; }
+TypeData TCPServer::infotypedata() { return set.type_data; }
+TypeSignal TCPServer::infotypesignal() { return set.type_signal; }
