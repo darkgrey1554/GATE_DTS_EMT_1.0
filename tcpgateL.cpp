@@ -647,18 +647,19 @@ int TCPClient::thread_tcp_client()
     char* buf_recv;// = new char[set.size_data * k_data + 4];
     int size_data_recv;
     int size_data_byte;
+    int command;
 
     if (set.type_data != TypeData::GROUP)
     {
         size_data_byte = set.size_data * k_data;
-        size_data_recv = size_data_byte + 4;
+        size_data_recv = size_data_byte + 8;
         buf_recv = new char[size_data_recv];        
     }
     else
     {
-        buf_recv = new char[4108];
-        size_data_recv = 4108;
-        size_data_byte = 4108;
+        buf_recv = new char[4112];
+        size_data_recv = 4112;
+        size_data_byte = 4112;
     }
 
     char* ibuf;
@@ -719,6 +720,7 @@ int TCPClient::thread_tcp_client()
             res_recv = 0;
             aiobuf.aio_offset = 0;
             aiobuf.aio_buf = buf_recv;
+            command = 0;
            
             for (;;)
             {
@@ -752,10 +754,13 @@ int TCPClient::thread_tcp_client()
 
                 count_recv += res_recv;
                 if (count_recv < 4) continue;
+                if (command == 0) command = *(int*)buf_recv;
+                if (command == 1) break;
+                if (command == 3 && count_recv < 8) continue;
 
                 if (set.type_data != TypeData::GROUP)
                 {
-                    num_recv = *((int*)buf_recv);
+                    num_recv = *((int*)(buf_recv+4));
                     if (num_recv != set.size_data)
                     {
                         result = -10;
@@ -765,6 +770,8 @@ int TCPClient::thread_tcp_client()
                 
                 if (count_recv >= size_data_recv) break;   
             }
+            if (command == 1) continue;
+            //if (command != 3 ) result = -11;
 
             if (result != 0)
             {
@@ -788,7 +795,8 @@ int TCPClient::thread_tcp_client()
 
 
             ibuf = buf_recv;
-            if (set.type_data != TypeData::GROUP) ibuf += 4;
+            if (set.type_data != TypeData::GROUP) { ibuf += 8; }
+            else { ibuf += 4; }
             jbuf = buf;
 
             if (pthread_mutex_lock(&mutex) == 0) /// вот тут надо try
@@ -802,7 +810,6 @@ int TCPClient::thread_tcp_client()
                         ibuf++;
                     }
                 }   
-                if (*(buf + 99) == -1) std::cout << "sdfsdf" <<std::endl;
                 pthread_mutex_unlock(&mutex);
             }
             

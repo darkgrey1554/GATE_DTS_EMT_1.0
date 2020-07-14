@@ -400,7 +400,7 @@ static int FuncRcvPPD(void* argPtr, Value& value, int32_t chnlId)
         grtype = dataPtr->groupType;
         size = dataPtr->size;
         index = value.idx;
-
+        pthread_mutex_lock(&gate->mutex_group_out);
         for (int i = 0; i < 4; i++)
         {
             *ibufc = *(((char*)(&index)) + i);
@@ -424,6 +424,7 @@ static int FuncRcvPPD(void* argPtr, Value& value, int32_t chnlId)
             *ibufc = dataPtr->value[i];
             ibufc++;
         }
+        pthread_mutex_unlock(&gate->mutex_group_out);
     }
     break;
 
@@ -495,7 +496,7 @@ int PPDClient::FuncWriteServerDTS()
             time = (timenow.tv_sec * 1000. + timenow.tv_usec / 1000.) - (timediscretelast.tv_sec * 1000. + timediscretelast.tv_usec / 1000.);
            
             if (FrequencySndDiscreteData < time)
-                std::cout << "DTSCLEINT ERROR SEND ANALOG DATA TIME: " << time << std::endl;
+                std::cout << "DTSCLEINT ERROR SEND DISCRETE DATA TIME: " << time << std::endl;
 
             if (FrequencySndDiscreteData - TIMEDEV < time)
             {
@@ -506,7 +507,7 @@ int PPDClient::FuncWriteServerDTS()
                     fi = *ibufi;
                     makeIValue(&value, j, 1, fi);
                     result = client->put(&value, channelDiscreteDataIn);
-                    if (result < 0) std::cout << "DTSCLEINT ERROR SEND ANALOG DATA ERROR" << client->getError() << std::endl;
+                    if (result < 0) std::cout << "DTSCLEINT ERROR SEND DISCRETE DATA ERROR" << client->getError() << std::endl;
                     ibufi++;
                 }
                 pthread_mutex_unlock(&mutex_discrete_in);
@@ -519,7 +520,7 @@ int PPDClient::FuncWriteServerDTS()
             time = (timenow.tv_sec * 1000. + timenow.tv_usec / 1000.) - (timebinarlast.tv_sec * 1000. + timebinarlast.tv_usec / 1000.);
 
             if (FrequencySndBinarData < time)
-                std::cout << "DTSCLEINT ERROR SEND ANALOG DATA TIME: " << time << std::endl;
+                std::cout << "DTSCLEINT ERROR SEND BINAR DATA TIME: " << time << std::endl;
 
             if (FrequencySndBinarData - TIMEDEV < time)
             {
@@ -531,7 +532,7 @@ int PPDClient::FuncWriteServerDTS()
                     fi = *ibufc;
                     makeBValue(&value, j, 1, fi);
                     result = client->put(&value, channelBinarDataIn);
-                    //if (result < 0) std::cout << "DTSCLEINT ERROR SEND BINAR DATA ERROR" << client->getError() << "... "<< (int)*ibufc << "  "<< j <<std::endl;
+                    if (result < 0) std::cout << "DTSCLEINT ERROR SEND BINAR DATA ERROR" << client->getError() << std::endl;
                     ibufc++;
                 }
                 pthread_mutex_unlock(&mutex_binar_in);
@@ -544,7 +545,7 @@ int PPDClient::FuncWriteServerDTS()
             time = (timenow.tv_sec * 1000. + timenow.tv_usec / 1000.) - (timegrouplast.tv_sec * 1000. + timegrouplast.tv_usec / 1000.);
 
             if (FrequencyGroupData < time)
-                std::cout << "DTSCLEINT ERROR SEND ANALOG DATA TIME: " << time << std::endl;
+                std::cout << "DTSCLEINT ERROR SEND GROUP DATA TIME: " << time << std::endl;
 
             if (FrequencyGroupData - TIMEDEV < time)
             {
@@ -554,11 +555,18 @@ int PPDClient::FuncWriteServerDTS()
                 index = *(int*)ibufc;
                 grtype = *(int*)(ibufc + 4);
                 size = *(int*)(ibufc + 8);
-                makeGValue(&value, index, grtype, (ibufc + 12), 22);
+                //std::cout << index << std::endl;
+                //std::cout << grtype << std::endl;
+                //std::cout << size << std::endl;
                 //makeGValue(&value, index, grtype, (ibufc + 12), size);
-                //makeGValue(&value,*(int*)ibufc, *(int*)(ibufc+4),ibufc+12, *(int*)(ibufc+8));
-                result = client->put(&value, channelGroupDataIn);
-                if (result < 0) std::cout << "DTSCLEINT ERROR SEND GROUP DATA ERROR" << client->getError() << std::endl;
+                //makeGValue(&value, index, grtype, (ibufc + 12), size);
+                if (index > 0 && grtype > 0 && size > 0)
+                {
+                    makeGValue(&value, *(int*)ibufc, *(int*)(ibufc + 4), ibufc + 12, *(int*)(ibufc + 8));
+                    result = client->put(&value, channelGroupDataIn);
+                    if (result < 0) std::cout << "DTSCLEINT ERROR SEND GROUP DATA ERROR" << client->getError() << std::endl;
+                }
+                
                 pthread_mutex_unlock(&mutex_group_in);
                 gettimeofday(&timegrouplast, NULL);
             }

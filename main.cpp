@@ -89,20 +89,28 @@ int main()
         tcpunit.push_back(TCPUnit::create_tcp_unit(config->ReadConfigItem(i)));
     }
 
-    InfobufPPD analogR = ppdcl->TakeInfoForReadPDD(TypeSignalPPD::Binar);
-    InfobufPPD analogW = ppdcl->TakeInfoForWritePDD(TypeSignalPPD::Binar);
-
+    //InfobufPPD analogR = ppdcl->TakeInfoForReadPDD(TypeSignalPPD::Binar);
+    //InfobufPPD analogW = ppdcl->TakeInfoForWritePDD(TypeSignalPPD::Binar);
+    TypeSignalPPD sig;
     for (auto item = tcpunit.begin(); item != tcpunit.end(); item++)
     {
-        if ((*item)->infotypedata() == TypeData::BINAR && (*item)->infotypesignal() == TypeSignal::OUTPUT)
+        if ((*item)->infotypesignal() == TypeSignal::OUTPUT)
         {
-            (*item)->initmutexbuffer(analogW.mutex);
-            (*item)->initpointbuffer((char*)analogW.buf);
+            if ((*item)->infotypedata() == TypeData::BINAR) sig = TypeSignalPPD::Binar;
+            if ((*item)->infotypedata() == TypeData::ANALOG) sig = TypeSignalPPD::Analog;
+            if ((*item)->infotypedata() == TypeData::DISCRETE) sig = TypeSignalPPD::Discrete;
+            if ((*item)->infotypedata() == TypeData::GROUP) sig = TypeSignalPPD::Group;
+            (*item)->initmutexbuffer(ppdcl->TakeInfoForWritePDD(sig).mutex);
+            (*item)->initpointbuffer((char*)ppdcl->TakeInfoForWritePDD(sig).buf);
         }
-        if ((*item)->infotypedata() == TypeData::BINAR && (*item)->infotypesignal() == TypeSignal::INPUT)
+        if ((*item)->infotypesignal() == TypeSignal::INPUT)
         {
-            (*item)->initmutexbuffer(analogR.mutex);
-            (*item)->initpointbuffer((char*)analogR.buf);
+            if ((*item)->infotypedata() == TypeData::BINAR) sig = TypeSignalPPD::Binar;
+            if ((*item)->infotypedata() == TypeData::ANALOG) sig = TypeSignalPPD::Analog;
+            if ((*item)->infotypedata() == TypeData::DISCRETE) sig = TypeSignalPPD::Discrete;
+            if ((*item)->infotypedata() == TypeData::GROUP) sig = TypeSignalPPD::Group;
+            (*item)->initmutexbuffer(ppdcl->TakeInfoForReadPDD(sig).mutex);
+            (*item)->initpointbuffer((char*)ppdcl->TakeInfoForReadPDD(sig).buf);
         }
     }
 
