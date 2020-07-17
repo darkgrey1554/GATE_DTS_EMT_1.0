@@ -1,19 +1,45 @@
 #include <cstdio>
 #include "tcpgateL.h"
 #include "PPDClient.h"
+#include <termios.h>
+#include <cstdlib>
 
+int getch()
+{
+    int ch;
+    struct termios oldt, newt;
+
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    ch = getchar();
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+
+    return ch;
+}
 
 #define SIZEMASS 100000
 
 
 int main()
 {
-    
+
     int res=0;
     PPDClient* ppdcl = new PPDClient();
     res=ppdcl->InitClientPPD("conf.txt");
-    std::cout << res << std::endl;
+    if (res == 0)
+    {
+        std::cout << "CONNECT WITH PPD: DONE" << std::endl;
+    }
+    else
+    {
+        std::cout << "CONNECT WITH PPD: FALL" << std::endl;
+        sleep(5);
+        return -1;
+    }
     sleep(5);
+
     /*InfobufPPD analogR;
     InfobufPPD analogW;
     analogR = ppdcl->TakeInfoForReadPDD(TypeSignalPPD::Group);
@@ -71,18 +97,18 @@ int main()
     sleep(1);
     goto next2;*/
 
-
-
-
-    printf("hello from GATE_DTS_EMT_1_0!\n");
-
-    pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
-    char* buf = new char[SIZEMASS*4];
-    float f;
+    //pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
+    //char* buf = new char[SIZEMASS*4];
+    //float f;
 
     ConfigReader* config = new ConfigReader();
-    config->ReadConfigFile("conf.txt");
-    std::cout << config->NumberItem() << std::endl;
+    res=config->ReadConfigFile("conf.txt");
+    if (res !=0)
+    {
+        std::cout << "ERROR READ CONFIG FILE" << std::endl;
+        sleep(5);
+        return -1;
+    }
     std::list<TCPUnit*> tcpunit;
     for (int i = 0; i < config->NumberItem(); i++)
     {
@@ -114,17 +140,26 @@ int main()
         }
     }
 
-    next:
+    /*next:
 
     /*pthread_mutex_lock(&mut);
     f = *(float*)buf;
     //std::cout << f << "  " << *(float*)(buf+SIZEMASS*4-4) <<std::endl;
     pthread_mutex_unlock(&mut);*/
-    usleep(100000);
+    //usleep(100000);
 
-    goto next;
+    //goto next;
 
+    //char s;
+    //std::cin >> s;
+    //return 0;
     char s;
-    std::cin >> s;
+    s = 0;
+    while (s != 0x1B)
+    {
+        s = (char)getch();
+        sleep(1);
+    }
+
     return 0;
 }

@@ -115,12 +115,12 @@ int PPDClient::read_config_file(const char* Namefile)
                 {
                     SizeAnalogDataOut = info.size;
                     channelAnalogDataOut = info.channel;
-                    FrequencySndAnalogData = info.frequency;
                 }
                 else if (str_info.find("Output") != -1)
                 {
                     SizeAnalogDataIn = info.size;
                     channelAnalogDataIn = info.channel;
+                    FrequencySndAnalogData = info.frequency;
                 }
             }
             else if (str_info.find("Discrete") != -1)
@@ -129,12 +129,13 @@ int PPDClient::read_config_file(const char* Namefile)
                 {
                     SizeDiscreteDataOut = info.size;
                     channelDiscreteDataOut = info.channel;
-                    FrequencySndDiscreteData = info.frequency;
+
                 }
                 else if (str_info.find("Output") != -1)
                 {
                     SizeDiscreteDataIn = info.size;
                     channelDiscreteDataIn = info.channel;
+                    FrequencySndDiscreteData = info.frequency;
                 }
             }
             else if (str_info.find("Group") != -1)
@@ -143,12 +144,13 @@ int PPDClient::read_config_file(const char* Namefile)
                 {
                     SizeGroupDataOut = info.size;
                     channelGroupDataOut = info.channel;
-                    FrequencyGroupData = info.frequency;
+
                 }
                 else if (str_info.find("Output") != -1)
                 {
                     SizeGroupDataIn = info.size;
                     channelGroupDataIn = info.channel;
+                    FrequencyGroupData = info.frequency;
                 }
             }
             else if (str_info.find("Binar") != -1)
@@ -157,12 +159,13 @@ int PPDClient::read_config_file(const char* Namefile)
                 {
                     SizeBinarDataOut = info.size;
                     channelBinarDataOut = info.channel;
-                    FrequencySndBinarData = info.frequency;
+
                 }
                 else if (str_info.find("Output") != -1)
                 {
                     SizeBinarDataIn = info.size;
                     channelBinarDataIn = info.channel;
+                    FrequencySndBinarData = info.frequency;
                 }
             }
 
@@ -195,7 +198,7 @@ int PPDClient::InitClientPPD(const char* filename)
     }
 
     result = client->getRcvAnaNum();
-    if (result == 0)
+    if (result == 0 && client->getError() != 0)
     {
         std::cout << "ERROR INIT PPDClient: ERROR DTSClient fub getRcvAnaNum CODE ERROR " << client->getError() << std::endl;
         client->~DTSClient();
@@ -211,7 +214,7 @@ int PPDClient::InitClientPPD(const char* filename)
     memset(bufAnalogOut, 0, sizeof(float)*result);
 
     result = client->getRcvIntNum();
-    if (result == 0)
+    if (result == 0 && client->getError() != 0)
     {
         std::cout << "ERROR INIT PPDClient: ERROR DTSClient fub getRcvIntNum CODE ERROR " << client->getError() << std::endl;
         client->~DTSClient();
@@ -227,7 +230,7 @@ int PPDClient::InitClientPPD(const char* filename)
     memset(bufDiscreteOut, 0, sizeof(int) * result);
 
     result = client->getRcvBinNum();
-    if (result == 0)
+    if (result == 0 && client->getError() != 0)
     {
         std::cout << "ERROR INIT PPDClient: ERROR DTSClient fub getRcvIntNum CODE ERROR " << client->getError() << std::endl;
         client->~DTSClient();
@@ -243,7 +246,7 @@ int PPDClient::InitClientPPD(const char* filename)
     memset(bufBinarOut, 0, sizeof(char) * result);
 
     result = client->getSndAnaNum();
-    if (result == 0)
+    if (result == 0 && client->getError() != 0)
     {
         std::cout << "ERROR INIT PPDClient: ERROR DTSClient fub getRcvAnaNum CODE ERROR " << client->getError() << std::endl;
         client->~DTSClient();
@@ -259,7 +262,7 @@ int PPDClient::InitClientPPD(const char* filename)
     memset(bufAnalogIn, 0, sizeof(float) * result);
 
     result = client->getSndIntNum();
-    if (result == 0)
+    if (result == 0 && client->getError() != 0)
     {
         std::cout << "ERROR INIT PPDClient: ERROR DTSClient fub getRcvIntNum CODE ERROR " << client->getError() << std::endl;
         client->~DTSClient();
@@ -275,7 +278,7 @@ int PPDClient::InitClientPPD(const char* filename)
     memset(bufDiscreteIn, 0, sizeof(int) * result);
 
     result = client->getSndBinNum();
-    if (result == 0)
+    if (result == 0 && client->getError() != 0)
     {
         std::cout << "ERROR INIT PPDClient: ERROR DTSClient fub getRcvIntNum CODE ERROR " << client->getError() << std::endl;
         client->~DTSClient();
@@ -290,22 +293,24 @@ int PPDClient::InitClientPPD(const char* filename)
     bufBinarIn = new char[result];
     memset(bufBinarIn, 0, sizeof(char) * result);
 
-    if (4100 < SizeGroupDataOut)
+    if (4096 < SizeGroupDataOut)
     {
         std::cout << "ERROR INIT PPDClient: BAD SISE MASS GROUP-OUT" << client->getError() << std::endl;
         client->~DTSClient();
         return 1;
     }
+    SizeGroupDataOut = 4096;
 
-    if (4100 < SizeGroupDataIn)
+    if (4096 < SizeGroupDataIn)
     {
         std::cout << "ERROR INIT PPDClient: BAD SISE MASS GROUP-IN" << client->getError() << std::endl;
         client->~DTSClient();
         return 1;
     }
+    SizeGroupDataIn = 4096;
 
-    bufGroupIn = new char[4108];
-    bufGroupOut = new char[4108];
+    bufGroupIn = new char[4112];
+    bufGroupOut = new char[4112];
 
     statusInitClient = 1;
     threadWriteServerDTS = std::thread(&PPDClient::FuncWriteServerDTS, this);
@@ -555,11 +560,6 @@ int PPDClient::FuncWriteServerDTS()
                 index = *(int*)ibufc;
                 grtype = *(int*)(ibufc + 4);
                 size = *(int*)(ibufc + 8);
-                //std::cout << index << std::endl;
-                //std::cout << grtype << std::endl;
-                //std::cout << size << std::endl;
-                //makeGValue(&value, index, grtype, (ibufc + 12), size);
-                //makeGValue(&value, index, grtype, (ibufc + 12), size);
                 if (index > 0 && grtype > 0 && size > 0)
                 {
                     makeGValue(&value, *(int*)ibufc, *(int*)(ibufc + 4), ibufc + 12, *(int*)(ibufc + 8));
@@ -633,8 +633,7 @@ InfobufPPD PPDClient::TakeInfoForWritePDD(TypeSignalPPD type_signal)
         infobuf.buf = bufGroupIn;
         infobuf.mutex = mutex_group_in;
     }
-
-
+    
     return infobuf;
 }
     

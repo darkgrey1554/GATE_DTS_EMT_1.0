@@ -314,6 +314,7 @@ int TCPServer::thread_tcp_server()
     }
     else
     {
+        set.size_data = 4096;
         size_data_byte = 4108;
         size_data_send = 4108;
         buf_send = new char[4108];
@@ -659,7 +660,7 @@ int TCPClient::thread_tcp_client()
     {
         buf_recv = new char[4112];
         size_data_recv = 4112;
-        size_data_byte = 4112;
+        size_data_byte = 4108;
     }
 
     char* ibuf;
@@ -781,7 +782,7 @@ int TCPClient::thread_tcp_client()
                 }
                 else if (result == -10)
                 {
-                    std::cout << "CLIENT ID: " << set.id_unit << "\tERROR ASYNC_READ: " << "ERROR SIZE_DATA (watch config file)" << std::endl;  /// так тут норм описать ошибку надо
+                    std::cout << "CLIENT ID: " << set.id_unit << "\tERROR ASYNC_READ: " << "ERROR SIZE_DATA" << std::endl;  /// так тут норм описать ошибку надо
                 }
                 else
                 {
@@ -799,20 +800,27 @@ int TCPClient::thread_tcp_client()
             else { ibuf += 4; }
             jbuf = buf;
 
-            if (pthread_mutex_lock(&mutex) == 0) /// вот тут надо try
+
+            try
             {
-                if (buf != 0)
+                if (pthread_mutex_lock(&mutex) == 0) /// вот тут надо try
                 {
-                    for (int i = 0; i < size_data_byte; i++)
+                    if (buf != 0)
                     {
-                        *jbuf = *ibuf;
-                        jbuf++;
-                        ibuf++;
+                        for (int i = 0; i < size_data_byte; i++)
+                        {
+                            *jbuf = *ibuf;
+                            jbuf++;
+                            ibuf++;
+                        }
                     }
-                }   
-                pthread_mutex_unlock(&mutex);
+                    pthread_mutex_unlock(&mutex);
+                }
+            }   
+            catch (...)
+            {
+                std::cout << "CLIENT ID: " << set.id_unit << "\tERROR COPY BUFFER: " << std::endl;  /// так тут норм описать ошибку надо
             }
-            
             
         }
     }

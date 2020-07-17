@@ -4,69 +4,25 @@
   Проверка архитектуры
   Запуск удаленной сборки.
   Компиляция исходных файлов:
-  tcpgateL.cpp
+  main.cpp
+D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\main.cpp(82,5): warning : "/*" within comment [-Wcomment]
+D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\main.cpp(82,5): warning :      /*for (int i = 0; i < 100; i++)
+D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\main.cpp(145,5): warning : "/*" within comment [-Wcomment]
+D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\main.cpp(145,5): warning :      /*pthread_mutex_lock(&mut);
 D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.h(78,35): warning : no return statement in function returning non-void [-Wreturn-type]
 D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.h(78,35): warning :   TypeData virtual infotypedata() {};
 D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.h(78,35): warning :                                    ^
 D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.h(79,39): warning : no return statement in function returning non-void [-Wreturn-type]
 D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.h(79,39): warning :   TypeSignal virtual infotypesignal() {};
 D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.h(79,39): warning :                                        ^
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(112,40): warning : comparison between signed and unsigned integer expressions [-Wsign-compare]
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(112,40): warning :              if (str_info.find("Input") != -1)
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(112,40): warning :                  ~~~~~~~~~~~~~~~~~~~~~~~^~~~~
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(116,46): warning : comparison between signed and unsigned integer expressions [-Wsign-compare]
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(116,46): warning :              else if (str_info.find("Output") != -1)
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(116,46): warning :                       ~~~~~~~~~~~~~~~~~~~~~~~~^~~~~
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(126,43): warning : comparison between signed and unsigned integer expressions [-Wsign-compare]
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(126,43): warning :              if (str_info.find("Discrete") != -1)
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(126,43): warning :                  ~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(130,46): warning : comparison between signed and unsigned integer expressions [-Wsign-compare]
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(130,46): warning :              else if (str_info.find("Analog") != -1)
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(130,46): warning :                       ~~~~~~~~~~~~~~~~~~~~~~~~^~~~~
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(134,45): warning : comparison between signed and unsigned integer expressions [-Wsign-compare]
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(134,45): warning :              else if (str_info.find("Binar") != -1)
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(134,45): warning :                       ~~~~~~~~~~~~~~~~~~~~~~~^~~~~
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(138,45): warning : comparison between signed and unsigned integer expressions [-Wsign-compare]
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(138,45): warning :              else if (str_info.find("Group") != -1)
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(138,45): warning :                       ~~~~~~~~~~~~~~~~~~~~~~~^~~~~
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(148,35): warning : conversion to ‘int’ from ‘std::__cxx11::basic_string<char>::size_type {aka long unsigned int}’ may alter its value [-Wconversion]
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(148,35): warning :              pos[0] = str_info.find('\t', 0);
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(148,35): warning :                       ~~~~~~~~~~~~~^~~~~~~~~
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(155,35): warning : conversion to ‘int’ from ‘std::__cxx11::basic_string<char>::size_type {aka long unsigned int}’ may alter its value [-Wconversion]
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(155,35): warning :              pos[1] = str_info.find('\t', (size_t)pos[0] + 1);
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(155,35): warning :                       ~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(166,35): warning : conversion to ‘int’ from ‘std::__cxx11::basic_string<char>::size_type {aka long unsigned int}’ may alter its value [-Wconversion]
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(166,35): warning :              pos[1] = str_info.find('\t', (size_t)pos[0] + 1);
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(166,35): warning :                       ~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(177,35): warning : conversion to ‘int’ from ‘std::__cxx11::basic_string<char>::size_type {aka long unsigned int}’ may alter its value [-Wconversion]
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(177,35): warning :              pos[1] = str_info.find('\t', (size_t)pos[0] + 1);
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(177,35): warning :                       ~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(188,35): warning : conversion to ‘int’ from ‘std::__cxx11::basic_string<char>::size_type {aka long unsigned int}’ may alter its value [-Wconversion]
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(188,35): warning :              pos[1] = str_info.find('\t', (size_t)pos[0] + 1);
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(188,35): warning :                       ~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(199,35): warning : conversion to ‘int’ from ‘std::__cxx11::basic_string<char>::size_type {aka long unsigned int}’ may alter its value [-Wconversion]
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(199,35): warning :              pos[1] = str_info.find('\t', (size_t)pos[0] + 1);
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(199,35): warning :                       ~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(238,25): warning : conversion to ‘int’ from ‘std::__cxx11::list<ConfigInfoTCPUnit>::size_type {aka long unsigned int}’ may alter its value [-Wconversion]
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(238,25): warning :      return listinfo.size();
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(238,25): warning :             ~~~~~~~~~~~~~^~
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(243,16): warning : comparison between signed and unsigned integer expressions [-Wsign-compare]
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(243,16): warning :      if (number > listinfo.size())
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(243,16): warning :          ~~~~~~~^~~~~~~~~~~~~~~~~
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(441,38): warning : conversion to ‘int’ from ‘__ssize_t {aka long int}’ may alter its value [-Wconversion]
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(441,38): warning :                  res_recv = aio_return(&aiobufrecv);
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(441,38): warning :                             ~~~~~~~~~~^~~~~~~~~~~~~
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(564,38): warning : conversion to ‘int’ from ‘__ssize_t {aka long int}’ may alter its value [-Wconversion]
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(564,38): warning :                  res_send = aio_return(&aiobufsend);
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(564,38): warning :                             ~~~~~~~~~~^~~~~~~~~~~~~
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(302,10): warning : unused variable ‘num_send’ [-Wunused-variable]
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(302,10): warning :      char num_send = 0;
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(302,10): warning :           ^~~~~~~~
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(771,32): warning : comparison between signed and unsigned integer expressions [-Wsign-compare]
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(771,32): warning :                  if (count_recv >= size_data_recv) break;
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(771,32): warning :                      ~~~~~~~~~~~^~~~~~~~~~~~~~~~~
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(262,1): warning : control reaches end of non-void function [-Wreturn-type]
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(262,1): warning :  }
-D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\tcpgateL.cpp(262,1): warning :  ^
+D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\PPDClient.h(24,7): warning : unused variable ‘channel’ [-Wunused-variable]
+D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\PPDClient.h(24,7): warning :    int channel = 0;
+D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\PPDClient.h(24,7): warning :        ^~~~~~~
+D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\PPDClient.h(95,13): warning : ‘int FuncRcvPPD(void*, Value&, int32_t)’ declared ‘static’ but never defined [-Wunused-function]
+D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\PPDClient.h(95,13): warning :   friend int FuncRcvPPD(void* argPtr, Value& value, int32_t chnlId);
+D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\PPDClient.h(95,13): warning :              ^~~~~~~~~~
+D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\main.cpp(139,70): warning : ‘sig’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\main.cpp(139,70): warning :              (*item)->initpointbuffer((char*)ppdcl->TakeInfoForReadPDD(sig).buf);
+D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\main.cpp(139,70): warning :                                              ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~
   Связывание объектов
   GATE_DTS_EMT_1.0.vcxproj -> D:\Program Files (x86)\project\GATE_DTS_EMT_1.0\bin\x64\Release\GATE_DTS_EMT_1.0.out
